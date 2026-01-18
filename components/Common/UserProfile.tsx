@@ -2,19 +2,31 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface UserProfileProps {
   onLogout: () => void;
   isMobile?: boolean;
+  onViewBookings?: () => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false }) => {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatarColor?: string;
+}
+
+const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false, onViewBookings }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
+    // Load user from localStorage
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -35,6 +47,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false })
 
     if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Add escape key listener
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setIsMenuOpen(false);
+      };
+      document.addEventListener('keydown', handleEscape);
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+      };
     }
 
     return () => {
@@ -46,24 +66,66 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false })
 
   const initials = user.name
     .split(' ')
-    .map((n: string) => n[0])
+    .map((n) => n[0])
     .join('')
     .toUpperCase()
     .substring(0, 2);
 
+  const handleProfileClick = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMyBookings = () => {
+    setIsMenuOpen(false);
+    if (onViewBookings) {
+      onViewBookings();
+    } else {
+      // Default behavior - navigate to bookings page or show modal
+      router.push('/my-bookings');
+    }
+  };
+
+  const handleProfileSettings = () => {
+    setIsMenuOpen(false);
+    router.push('/profile');
+  };
+
+  const handleSavedTrips = () => {
+    setIsMenuOpen(false);
+    router.push('/saved-trips');
+  };
+
   return (
-    <div className="user-profile-container relative">
+    <div className="relative">
       <button
         ref={buttonRef}
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="user-profile-btn flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+        onClick={handleProfileClick}
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        aria-label="User menu"
+        aria-expanded={isMenuOpen}
       >
-        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white"
+          style={{
+            background: user.avatarColor || 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+          }}
+        >
           {initials}
         </div>
-        {!isMobile && <span className="font-medium">{user.name.split(' ')[0]}</span>}
+        {!isMobile && (
+          <div className="flex flex-col items-start">
+            <span className="font-semibold text-sm text-gray-800">
+              {user.name.split(' ')[0]}
+            </span>
+            <span className="text-xs text-gray-500">
+              {user.email.split('@')[0]}...
+            </span>
+          </div>
+        )}
         <svg
-          className={`w-4 h-4 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+            isMenuOpen ? 'rotate-180' : ''
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -75,46 +137,127 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false })
       {isMenuOpen && (
         <div
           ref={menuRef}
-          className="user-profile-menu absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+          className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-fadeIn"
+          style={{
+            animation: 'fadeIn 0.2s ease-out',
+          }}
         >
-          <div className="p-4 border-b border-gray-100">
-            <h4 className="font-semibold text-gray-900">{user.name}</h4>
-            <p className="text-sm text-gray-600 mt-1">{user.email}</p>
+          {/* User Info Section */}
+          <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
+                style={{
+                  background: user.avatarColor || 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+                }}
+              >
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-gray-900 truncate">{user.name}</h4>
+                <p className="text-sm text-gray-600 truncate">{user.email}</p>
+              </div>
+            </div>
           </div>
+
+          {/* Menu Items */}
           <div className="py-2">
-            <button className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              My Bookings
+            <button
+              onClick={handleMyBookings}
+              className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">My Bookings</div>
+                <div className="text-xs text-gray-500">View and manage trips</div>
+              </div>
             </button>
-            <button className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Profile Settings
+
+            <button
+              onClick={handleProfileSettings}
+              className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">Profile Settings</div>
+                <div className="text-xs text-gray-500">Edit personal info</div>
+              </div>
             </button>
-            <button className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              Saved Trips
+
+            <button
+              onClick={handleSavedTrips}
+              className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors">
+                <svg className="w-4 h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">Saved Trips</div>
+                <div className="text-xs text-gray-500">Wishlist & favorites</div>
+              </div>
             </button>
+
             <button
               onClick={() => {
-                onLogout();
                 setIsMenuOpen(false);
+                onLogout();
               }}
-              className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 flex items-center gap-3 border-t border-gray-100"
+              className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3 group border-t border-gray-100 mt-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
+              <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="font-medium">Logout</div>
+                <div className="text-xs text-red-500">Sign out of your account</div>
+              </div>
             </button>
+          </div>
+
+          {/* Quick Stats (Optional) */}
+          <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+            <div className="flex justify-between text-sm">
+              <div className="text-center">
+                <div className="font-bold text-gray-900">3</div>
+                <div className="text-gray-500">Trips</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-gray-900">12</div>
+                <div className="text-gray-500">Points</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-gray-900">Gold</div>
+                <div className="text-gray-500">Tier</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };
