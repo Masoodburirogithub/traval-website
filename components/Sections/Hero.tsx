@@ -1,4 +1,3 @@
-// components/Sections/Hero.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -12,7 +11,7 @@ const Hero = () => {
   const [searchCriteria, setSearchCriteria] = useState({
     from: '',
     to: '',
-    departureDate: '',
+    departureDate: '',  
     returnDate: '',
     passengers: '1',
     cabinClass: 'economy',

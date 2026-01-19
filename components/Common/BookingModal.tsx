@@ -1,12 +1,25 @@
-// components/Common/BookingModal.tsx - EXACT ORIGINAL VERSION
 'use client';
 
 import React, { useState, useEffect } from 'react';
 
-const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+interface SearchCriteria {
+  from: string;
+  to: string;
+  departureDate: string;
+  returnDate: string;
+  passengers: string;
+  cabinClass: string;
+}
+
+interface BookingModalProps {
+  onClose: () => void;
+  searchCriteria: SearchCriteria;
+}
+
+const BookingModal: React.FC<BookingModalProps> = ({ onClose, searchCriteria }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [passengers, setPassengers] = useState(2);
+  const [passengers, setPassengers] = useState(parseInt(searchCriteria.passengers) || 1);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   // This matches your original HTML structure EXACTLY
@@ -67,7 +80,7 @@ const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </h2>
                 
                 <div style={{ color: '#6b7280', marginBottom: '30px', padding: '20px', background: '#f8fafc', borderRadius: '10px' }}>
-                  <strong>Search Criteria:</strong> Sydney to London • 2 passengers • Economy
+                  <strong>Search Criteria:</strong> {searchCriteria.from || 'Sydney'} to {searchCriteria.to || 'London'} • {searchCriteria.passengers} passenger{parseInt(searchCriteria.passengers) > 1 ? 's' : ''} • {searchCriteria.cabinClass}
                 </div>
                 
                 {/* Flight Cards - Matching your original */}
@@ -140,11 +153,11 @@ const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {currentStep === 2 && (
               <div className="booking-card">
                 <h2 style={{ color: '#1d4ed8', marginBottom: '30px', fontSize: '24px' }}>
-                  <i className="fas fa-users"></i> Passenger Details (2 passengers)
+                  <i className="fas fa-users"></i> Passenger Details ({passengers} passenger{passengers > 1 ? 's' : ''})
                 </h2>
                 
                 <form id="passengerDetailsForm">
-                  {[1, 2].map((passenger) => (
+                  {Array.from({ length: passengers }, (_, i) => i + 1).map((passenger) => (
                     <div key={passenger} className="passenger-section">
                       <h3 style={{ color: '#1d4ed8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <i className="fas fa-user"></i> Passenger {passenger}
@@ -366,11 +379,11 @@ const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #e5e7eb' }}>
                         <span>Route</span>
-                        <span style={{ fontWeight: '600' }}>SYD → LHR</span>
+                        <span>{searchCriteria.from || 'Sydney'} → {searchCriteria.to || 'London'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #e5e7eb' }}>
                         <span>Passengers</span>
-                        <span style={{ fontWeight: '600' }}>2 x $850</span>
+                        <span style={{ fontWeight: '600' }}>{passengers} x $850</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #e5e7eb' }}>
                         <span>Taxes & Fees</span>
@@ -378,7 +391,7 @@ const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '24px', fontWeight: '900', color: '#1d4ed8', marginTop: '20px' }}>
                         <span>Total Amount</span>
-                        <span>$1940</span>
+                        <span>${(passengers * 850) + 240}</span>
                       </div>
                     </div>
                     
@@ -407,7 +420,7 @@ const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     onClick={() => setCurrentStep(5)}
                     style={{ padding: '12px 30px' }}
                   >
-                    <i className="fas fa-lock"></i> Pay $1940
+                    <i className="fas fa-lock"></i> Pay ${(passengers * 850) + 240}
                   </button>
                 </div>
               </div>
@@ -440,24 +453,22 @@ const BookingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', fontSize: '14px', marginBottom: '5px' }}>Route</div>
-                        <div style={{ fontWeight: '700', color: '#1f2937' }}>SYD → LHR</div>
+                        <div style={{ fontWeight: '700', color: '#1f2937' }}>{searchCriteria.from || 'Sydney'} → {searchCriteria.to || 'London'}</div>
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', fontSize: '14px', marginBottom: '5px' }}>Total Amount</div>
-                        <div style={{ fontWeight: '900', color: '#1d4ed8', fontSize: '20px' }}>$1940</div>
+                        <div style={{ fontWeight: '900', color: '#1d4ed8', fontSize: '20px' }}>${(passengers * 850) + 240}</div>
                       </div>
                     </div>
                     
                     <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e5e7eb' }}>
                       <div style={{ color: '#6b7280', fontSize: '14px', marginBottom: '10px' }}>Passenger Details</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
-                        <span>Mr John Smith</span>
-                        <span style={{ fontWeight: '600' }}>Seat: 12A</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
-                        <span>Mrs Jane Smith</span>
-                        <span style={{ fontWeight: '600' }}>Seat: 12B</span>
-                      </div>
+                      {selectedSeats.map((seat, index) => (
+                        <div key={seat} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                          <span>Passenger {index + 1}</span>
+                          <span style={{ fontWeight: '600' }}>Seat: {seat}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   
