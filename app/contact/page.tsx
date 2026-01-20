@@ -91,7 +91,7 @@ const ContactPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-20">
+      <div className="contact-img mt-[50px] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6">Contact Us</h1>
           <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto mb-10">
