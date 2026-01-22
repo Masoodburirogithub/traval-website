@@ -1,9 +1,10 @@
-// components/Layout/Navbar.tsx
+// components/Layout/Navbar.tsx - UPDATED CORRECTLY
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs'; // Add this
 import LoginModal from '../Common/LoginModal';
 import SignupModal from '../Common/SignupModal';
 import UserProfile from '../Common/UserProfile';
@@ -13,6 +14,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const { isSignedIn } = useAuth(); // Get Clerk auth state
   const pathname = usePathname();
 
   const navItems = [
@@ -25,10 +27,10 @@ const Navbar = () => {
   ];
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
+    // Check both Clerk and localStorage for login status
     const savedUser = localStorage.getItem('currentUser');
-    setIsLoggedIn(!!savedUser);
-  }, []);
+    setIsLoggedIn(isSignedIn || !!savedUser);
+  }, [isSignedIn]); // Re-run when Clerk auth state changes
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
@@ -37,6 +39,7 @@ const Navbar = () => {
 
   return (
     <>
+      {/* KEEP YOUR ORIGINAL NAVBAR UI EXACTLY AS IT WAS */}
       <nav className="bg-white px-8 py-4 flex items-center justify-between shadow-sm flex-wrap">
         <div className="flex items-center space-x-2 mb-4 md:mb-0">
           <div className="flex flex-col items-center">
@@ -141,7 +144,7 @@ const Navbar = () => {
         )}
       </nav>
 
-      {/* Modals */}
+      {/* Keep your original modals */}
       {showLoginModal && (
         <LoginModal
           onClose={() => setShowLoginModal(false)}

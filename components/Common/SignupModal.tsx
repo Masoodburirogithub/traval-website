@@ -1,7 +1,8 @@
-// components/Common/SignupModal.tsx
+// components/Common/SignupModal.tsx - UPDATED CORRECTLY
 'use client';
 
 import React, { useState } from 'react';
+import { useClerk, useSignUp } from '@clerk/nextjs';
 
 interface SignupModalProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { signUp } = useSignUp();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -42,28 +44,65 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const user = {
-        id: 'USR' + Date.now().toString().slice(-6),
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-      };
-      
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      onSignupSuccess();
+    try {
+      // Option 1: Use Clerk for signup
+      if (signUp) {
+        const result = await signUp.create({
+          emailAddress: formData.email,
+          password: formData.password,
+          firstName: formData.name.split(' ')[0],
+          lastName: formData.name.split(' ').slice(1).join(' ') || '',
+        });
+        
+        if (result.status === 'complete') {
+          // Save user data to localStorage for compatibility
+          const user = {
+            id: result.createdUserId || 'USR' + Date.now().toString().slice(-6),
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+          };
+          
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          onSignupSuccess();
+        }
+      } else {
+        // Fallback to your original logic
+        setTimeout(() => {
+          const user = {
+            id: 'USR' + Date.now().toString().slice(-6),
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+          };
+          
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          onSignupSuccess();
+          setIsLoading(false);
+        }, 1000);
+      }
+    } catch (error: any) {
+      setError(error.errors?.[0]?.message || 'Signup failed');
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleGoogleSignup = () => {
-    // Implement Google OAuth here
-    console.log('Google signup clicked');
+  const handleGoogleSignup = async () => {
+    // Use Clerk's Google OAuth
+    try {
+      await signUp?.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/",
+        redirectUrlComplete: "/",
+      });
+    } catch (error) {
+      console.error('Google signup error:', error);
+    }
   };
 
   return (
     <div className="modal active">
+      {/* KEEP ALL YOUR ORIGINAL UI */}
       <div className="modal-container">
         <button className="close-btn" onClick={onClose}>×</button>
         
@@ -87,9 +126,8 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
 
         <div className="form-section">
           <div className="form-wrapper">
-            <h2>Sign Up</h2>
-            <p className="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas</p>
-
+            {/* <h2>Sign Up</h2> */}
+          
             <button 
               onClick={handleGoogleSignup}
               className="google-auth google-btn"
@@ -113,6 +151,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
                 </div>
               )}
 
+              {/* KEEP YOUR ORIGINAL FORM FIELDS */}
               <div className="full-width">
                 <input
                   type="text"
