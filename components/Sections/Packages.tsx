@@ -14,7 +14,7 @@ const Packages = () => {
       country: 'Thailand',
       description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consequat ex tortor.',
       duration: '1 Week',
-      image: '../../public/Frame1597887005.jpg',
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920',
     },
     // Add more packages as needed
   ];
@@ -51,7 +51,7 @@ const Packages = () => {
         {packages.map((pkg) => (
           <div key={pkg.id} className="bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow group">
             <div className="h-48 md:h-64 overflow-hidden relative">
-              <Image 
+              <img
                 src={pkg.image} 
                 alt={pkg.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

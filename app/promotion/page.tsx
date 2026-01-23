@@ -4,6 +4,8 @@
 import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { Hero, Navbar } from '@/components';
+import img1 from "../../public/about_4.png.jpg"
+// import { Image } from 'next/image';
 
 const PromotionPage = () => {
   const packagesData = [
@@ -118,11 +120,11 @@ const PromotionPage = () => {
           </div>
 
           {/* Center Illustration */}
-          <div className="flex-1.5">
+          <div className="flex-1">
             <div className="relative w-full h-64 md:h-80 lg:h-96">
               {/* Placeholder for illustration */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center">
-                <i className="fas fa-globe-americas text-blue-300 text-6xl md:text-8xl"></i>
+              <div className="absolute w-full h-64 md:h-80 lg:h-96 flex items-center justify-center">
+                <Image src={img1} alt="" />
               </div>
             </div>
           </div>
