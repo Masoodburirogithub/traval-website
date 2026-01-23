@@ -1,9 +1,9 @@
 // components/Sections/Packages.tsx
 'use client';
-
+import Image from 'next/image';
 import React from 'react';
 import { useRouter } from 'next/navigation';
-
+// import img1 from '../../public/Frame1597887005.jpg'
 const Packages = () => {
   const router = useRouter();
 
@@ -14,7 +14,7 @@ const Packages = () => {
       country: 'Thailand',
       description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam consequat ex tortor.',
       duration: '1 Week',
-      image: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800',
+      image: '../../public/Frame1597887005.jpg',
     },
     // Add more packages as needed
   ];
@@ -51,7 +51,7 @@ const Packages = () => {
         {packages.map((pkg) => (
           <div key={pkg.id} className="bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow group">
             <div className="h-48 md:h-64 overflow-hidden relative">
-              <img 
+              <Image 
                 src={pkg.image} 
                 alt={pkg.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

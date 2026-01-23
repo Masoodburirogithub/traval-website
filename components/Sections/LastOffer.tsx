@@ -4,7 +4,7 @@ import React from 'react';
 const LastOffer = () => {
   return (
     <section className="max-w-7xl mx-auto px-4 md:px-6 pb-12 md:pb-24">
-      <div className="relative rounded-[20px] md:rounded-[40px] overflow-hidden h-[350px] md:h-[500px]">
+      <div className="relative overflow-hidden h-[350px] md:h-[500px]">
         <img
           src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920"
           alt="Cape Town Stadium Aerial View"

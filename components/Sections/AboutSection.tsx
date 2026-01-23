@@ -1,7 +1,9 @@
 // components/Sections/AboutSection.tsx
 'use client';
-
+import Image from 'next/image';
 import React from 'react';
+import mountain from '../../public/Frame1597886600.jpg'
+import temple from '../../public/Frame1597886602.jpg'
 
 const AboutSection = () => {
   return (
@@ -19,24 +21,24 @@ const AboutSection = () => {
 
       <div className="relative w-full md:w-1/2 h-[400px] md:h-[500px]">
         <div className="absolute top-0 left-0 w-48 md:w-64 h-60 md:h-80 z-10 overflow-hidden rounded-custom shadow-xl border-4 border-white">
-          <img
-            src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80"
+          <Image
+             src={mountain}
             alt="Mountain"
             className="w-full h-full object-cover"
           />
         </div>
 
         <div className="absolute top-12 md:top-20 left-32 md:left-48 w-48 md:w-64 h-48 md:h-64 z-30 overflow-hidden rounded-custom shadow-2xl border-4 border-white">
-          <img
-            src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80"
+          <Image
+            src={temple}
             alt="Paris"
             className="w-full h-full object-cover"
           />
         </div>
 
         <div className="absolute bottom-0 left-12 md:left-20 w-56 md:w-72 h-56 md:h-72 z-20 overflow-hidden rounded-custom shadow-lg border-4 border-white">
-          <img
-            src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=600&q=80"
+          <Image
+            src={mountain}
             alt="Temple"
             className="w-full h-full object-cover"
           />
