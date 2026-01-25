@@ -22,6 +22,9 @@ const Hero = () => {
   ]);
   const [multiCityPassengers, setMultiCityPassengers] = useState('1');
   const [multiCityClass, setMultiCityClass] = useState('economy');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Set default dates
   React.useEffect(() => {
@@ -44,29 +47,44 @@ const Hero = () => {
     })));
   }, []);
 
-  const handleSearch = () => {
-    // Check if user is logged in
-    const savedUser = localStorage.getItem('currentUser');
-    if (!savedUser) {
-      // Show notification
-      if (typeof window !== 'undefined') {
-        showNotification('Please login to book flights', 'warning');
-        // You can trigger login modal here
-        return;
-      }
+  const handleSearch = async () => {
+    if (!searchCriteria.from || !searchCriteria.to || !searchCriteria.departureDate) {
+      showNotification('Please fill in From, To and Departure Date', 'warning');
+      return;
     }
-    setShowBookingModal(true);
+
+    setLoading(true);
+    setResults(null);
+    setError(null);
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const url = `${baseUrl}/api/sabre/search?origin=${searchCriteria.from}&destination=${searchCriteria.to}&date=${searchCriteria.departureDate}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.success) {
+        setResults(data.data);
+        // Scroll to results
+        setTimeout(() => {
+          document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        setError(data.message || 'No flights found for this route');
+        showNotification(data.message || 'No flights found', 'error');
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      setError('An error occurred while searching for flights');
+      showNotification('An error occurred while searching for flights', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMultiCitySearch = () => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (!savedUser) {
-      if (typeof window !== 'undefined') {
-        showNotification('Please login to book flights', 'warning');
-        return;
-      }
-    }
-    // Handle multi-city search
+    // For now, multi-city just does a notification as before or we could implement it
     showNotification('Multi-city search functionality coming soon!', 'info');
   };
 
@@ -242,12 +260,20 @@ const Hero = () => {
                 </div>
                 
                 <button 
-                  className="btn-search" 
+                  className={`btn-search ${loading ? 'opacity-70 cursor-not-allowed' : ''}`} 
                   type="button" 
                   onClick={handleSearch}
-                  style={{ width: '100%', marginTop: '10px' }}
+                  disabled={loading}
+                  style={{ width: '100%', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  Search Flights
+                  {loading ? (
+                    <>
+                      <span className="animate-spin">🌀</span>
+                      Searching...
+                    </>
+                  ) : (
+                    'Search Flights'
+                  )}
                 </button>
               </form>
 
@@ -384,6 +410,118 @@ const Hero = () => {
           </header>
         </div>
       </div>
+
+      {/* Flight Results Section */}
+      {(loading || results || error) && (
+        <div id="search-results" className="search-results-section py-12 bg-gray-50">
+          <div className="main-container">
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="loading-spinner mb-4"></div>
+                <h3 className="text-xl font-semibold text-gray-700">Finding the best flights for you...</h3>
+              </div>
+            )}
+
+            {error && !loading && (
+              <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
+                <div className="text-4xl mb-4">✈️</div>
+                <h3 className="text-xl font-semibold text-gray-800">{error}</h3>
+                <p className="text-gray-500 mt-2">Try different cities or dates.</p>
+              </div>
+            )}
+
+            {results && !loading && (
+              <div className="results-container">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Available Flights from {results.OriginLocation} to {results.DestinationLocation}
+                  </h2>
+                  <span className="bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-medium">
+                    {results.PricedItineraries?.length || 0} flights found
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {results.PricedItineraries?.map((itin: any, index: number) => {
+                    const pricing = itin.AirItineraryPricingInfo.ItinTotalFare;
+                    const segments = itin.AirItinerary.OriginDestinationOptions.OriginDestinationOption[0].FlightSegment;
+                    const firstLeg = segments[0];
+                    const lastLeg = segments[segments.length - 1];
+                    const airlineCode = itin.TPA_Extensions.ValidatingCarrier.Code;
+                    
+                    return (
+                      <div key={index} className="flight-card bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col md:flex-row items-center gap-8">
+                        {/* Airline Info */}
+                        <div className="flex flex-col items-center gap-2 w-full md:w-32">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center font-bold text-blue-600 text-lg">
+                            {airlineCode}
+                          </div>
+                          <span className="text-sm font-medium text-gray-600">Flight {firstLeg.FlightNumber}</span>
+                        </div>
+
+                        {/* Departure & Arrival */}
+                        <div className="flex-1 flex items-center justify-between w-full">
+                          <div className="text-center md:text-left">
+                            <div className="text-2xl font-bold text-gray-800">
+                              {new Date(firstLeg.DepartureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            <div className="text-sm font-medium text-gray-500 uppercase">{firstLeg.DepartureAirport.LocationCode}</div>
+                          </div>
+
+                          <div className="flex-1 flex flex-col items-center px-8 relative">
+                            <span className="text-xs text-gray-400 mb-1">{Math.floor(itin.AirItinerary.OriginDestinationOptions.OriginDestinationOption[0].ElapsedTime / 60)}h {itin.AirItinerary.OriginDestinationOptions.OriginDestinationOption[0].ElapsedTime % 60}m</span>
+                            <div className="w-full h-[2px] bg-gray-200 relative">
+                              <div className="absolute top-1/2 left-0 w-2 h-2 rounded-full bg-gray-300 -translate-y-1/2"></div>
+                              <div className="absolute top-1/2 right-0 w-2 h-2 rounded-full bg-blue-500 -translate-y-1/2"></div>
+                              {segments.length > 1 && (
+                                <div className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-orange-400 -translate-y-1/2 -translate-x-1/2" title={`${segments.length - 1} stop(s)`}></div>
+                              )}
+                            </div>
+                            <span className="text-xs font-semibold mt-1 text-gray-500">
+                              {segments.length === 1 ? 'Non-stop' : `${segments.length - 1} Stop${segments.length > 2 ? 's' : ''}`}
+                            </span>
+                          </div>
+
+                          <div className="text-center md:text-right">
+                            <div className="text-2xl font-bold text-gray-800">
+                              {new Date(lastLeg.ArrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            <div className="text-sm font-medium text-gray-500 uppercase">{lastLeg.ArrivalAirport.LocationCode}</div>
+                          </div>
+                        </div>
+
+                        {/* Price & Action */}
+                        <div className="flex flex-row md:flex-col items-center border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8 w-full md:w-48 justify-between md:justify-center gap-4">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-400 uppercase font-bold tracking-wider">Total Price</div>
+                            <div className="text-2xl font-extrabold text-blue-600">
+                              {pricing.TotalFare.CurrencyCode} {pricing.TotalFare.Amount.toLocaleString()}
+                            </div>
+                          </div>
+                          <button 
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold transition-colors whitespace-nowrap"
+                            onClick={() => {
+                              setSearchCriteria({
+                                ...searchCriteria,
+                                from: firstLeg.DepartureAirport.LocationCode,
+                                to: lastLeg.ArrivalAirport.LocationCode,
+                                departureDate: firstLeg.DepartureDateTime.split('T')[0]
+                              });
+                              setShowBookingModal(true);
+                            }}
+                          >
+                            Book Now
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {showBookingModal && (
         <BookingModal
