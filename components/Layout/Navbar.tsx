@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs'; // Add this
+// import { useAuth } from '@clerk/nextjs'; // Add this
 import LoginModal from '../Common/LoginModal';
 import SignupModal from '../Common/SignupModal';
 import UserProfile from '../Common/UserProfile';
@@ -14,7 +14,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
-  const { isSignedIn } = useAuth(); // Get Clerk auth state
+  // const { isSignedIn } = useAuth(); // Get Clerk auth state
   const pathname = usePathname();
 
   const navItems = [
@@ -29,8 +29,8 @@ const Navbar = () => {
   useEffect(() => {
     // Check both Clerk and localStorage for login status
     const savedUser = localStorage.getItem('currentUser');
-    setIsLoggedIn(isSignedIn || !!savedUser);
-  }, [isSignedIn]); // Re-run when Clerk auth state changes
+    setIsLoggedIn(!!savedUser);
+  }, []); // Re-run when Clerk auth state changes
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');

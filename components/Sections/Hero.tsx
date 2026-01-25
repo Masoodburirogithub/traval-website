@@ -74,6 +74,14 @@ const Hero = () => {
     setMultiCityTrips([...multiCityTrips, { from: '', to: '', date: '' }]);
   };
 
+  const removeTrip = (index: number) => {
+    if (multiCityTrips.length > 2) {
+      setMultiCityTrips(multiCityTrips.filter((_, i) => i !== index));
+    } else {
+      showNotification('Minimum 2 trips are required', 'warning');
+    }
+  };
+
   const updateTrip = (index: number, field: 'from' | 'to' | 'date', value: string) => {
     const updatedTrips = [...multiCityTrips];
     updatedTrips[index] = {
@@ -113,7 +121,7 @@ const Hero = () => {
 
   return (
     <>
-      <div className="main-section">
+      <div className="main-section pb-64 md:pb-20 ">
         <div className="main-container">
           <header className="hero">
             <div className="hero-content">
@@ -247,15 +255,12 @@ const Hero = () => {
               <div 
                 className="multi-city-form" 
                 style={{ 
-                  display: searchType === 'multi-city' ? 'flex' : 'none',
-                  flexDirection: 'column',
-                  gap: '20px',
-                  marginBottom: '25px'
+                  display: searchType === 'multi-city' ? 'flex' : 'none'
                 }}
               >
                 <div className="flight-rows-container" id="flightRows">
                   {multiCityTrips.map((trip, index) => (
-                    <div key={index} className="flight-row">
+                    <div key={index} className="flight-row" style={{ position: 'relative' }}>
                       <div className="input-group">
                         <label>From</label>
                         <div className="input-wrapper">
@@ -290,6 +295,33 @@ const Hero = () => {
                           <span className="calendar-icon">📅</span>
                         </div>
                       </div>
+                      {multiCityTrips.length > 2 && (
+                        <button 
+                          className="remove-trip-btn"
+                          onClick={() => removeTrip(index)}
+                          title="Remove trip"
+                          type="button"
+                          style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            background: '#fee2e2',
+                            color: '#ef4444',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

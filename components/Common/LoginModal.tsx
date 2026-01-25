@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useClerk, useSignIn } from '@clerk/nextjs';
+
 
 interface LoginModalProps {
   onClose: () => void;
@@ -15,8 +15,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSwitchToSignup, onLo
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useSignIn();
-  const { setSession } = useClerk();
+  const signIn = null; // const { signIn } = useSignIn();
+  // const { setSession } = useClerk();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,25 +25,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSwitchToSignup, onLo
     try {
       // Option 1: Use Clerk for authentication
       if (signIn) {
-        const result = await signIn.create({
-          identifier: email,
-          password: password,
-        });
-        
-        if (result.status === 'complete') {
-          // Clerk handles the session
-          const user = {
-            id: result.createdUserId || 'USR001',
-            name: email.split('@')[0] || 'User',
-            email: email,
-            phone: '+61 412 345 678',
-          };
-          
-          // Still save to localStorage for your existing code compatibility
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          onLoginSuccess();
-        }
-      } else {
+        // Clerk disabled for static export
+      }else {
         // Fallback to your original logic
         setTimeout(() => {
           const user = {
@@ -67,11 +50,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSwitchToSignup, onLo
   const handleGoogleLogin = async () => {
     // Use Clerk's Google OAuth
     try {
-      await signIn?.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/",
-        redirectUrlComplete: "/",
-      });
+      if (signIn) {
+         // await signIn?.authenticateWithRedirect({
+         //   strategy: "oauth_google",
+         //   redirectUrl: "/",
+         //   redirectUrlComplete: "/",
+         // });
+      } else {
+        console.log("Google login disabled for static export");
+      }
     } catch (error) {
       console.error('Google login error:', error);
     }

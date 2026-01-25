@@ -1,0 +1,10 @@
+:HL["/_next/static/chunks/a75c1473a782336d.css","style"]
+:HL["/_next/static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap","style"]
+:HL["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css","style"]
+:HL["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800","image"]
+:HL["https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800","image"]
+:HL["https://images.unsplash.com/photo-1568084680786-a84f91d1153c?auto=format&fit=crop&w=800","image"]
+:HL["https://images.unsplash.com/photo-1564501049418-3c27787d01e8?auto=format&fit=crop&w=800","image"]
+:HL["https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800","image"]
+0:{"buildId":"PX66Skr19t5GTJK7AURmP","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"hotels","paramType":null,"paramKey":"hotels","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}

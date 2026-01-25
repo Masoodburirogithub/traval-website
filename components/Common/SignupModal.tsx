@@ -1,8 +1,7 @@
-// components/Common/SignupModal.tsx - UPDATED CORRECTLY
 'use client';
 
 import React, { useState } from 'react';
-import { useClerk, useSignUp } from '@clerk/nextjs';
+// import { useClerk, useSignUp } from '@clerk/nextjs';
 
 interface SignupModalProps {
   onClose: () => void;
@@ -21,7 +20,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signUp } = useSignUp();
+  const signUp = null; // const { signUp } = useSignUp();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,25 +46,7 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
     try {
       // Option 1: Use Clerk for signup
       if (signUp) {
-        const result = await signUp.create({
-          emailAddress: formData.email,
-          password: formData.password,
-          firstName: formData.name.split(' ')[0],
-          lastName: formData.name.split(' ').slice(1).join(' ') || '',
-        });
-        
-        if (result.status === 'complete') {
-          // Save user data to localStorage for compatibility
-          const user = {
-            id: result.createdUserId || 'USR' + Date.now().toString().slice(-6),
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-          };
-          
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          onSignupSuccess();
-        }
+        // Clerk disabled for static export
       } else {
         // Fallback to your original logic
         setTimeout(() => {
@@ -90,11 +71,15 @@ const SignupModal: React.FC<SignupModalProps> = ({ onClose, onSwitchToLogin, onS
   const handleGoogleSignup = async () => {
     // Use Clerk's Google OAuth
     try {
-      await signUp?.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/",
-        redirectUrlComplete: "/",
-      });
+      if (signUp) {
+        // await signUp?.authenticateWithRedirect({
+        //   strategy: "oauth_google",
+        //   redirectUrl: "/",
+        //   redirectUrlComplete: "/",
+        // });
+      } else {
+        console.log("Google signup disabled for static export");
+      }
     } catch (error) {
       console.error('Google signup error:', error);
     }
