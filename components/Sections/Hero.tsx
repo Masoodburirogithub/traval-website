@@ -7,7 +7,7 @@ const Hero = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [searchType, setSearchType] = useState<'return' | 'one-way' | 'multi-city'>('return');
   const [searchCriteria, setSearchCriteria] = useState({
-    from: 'Sydney',
+    from: '',
     to: '',
     departureDate: '',  
     returnDate: '',
@@ -17,7 +17,7 @@ const Hero = () => {
   
   // For Multi-City
   const [multiCityTrips, setMultiCityTrips] = useState([
-    { from: 'Sydney', to: '', date: '' },
+    { from: '', to: '', date: '' },
     { from: '', to: '', date: '' }
   ]);
   const [multiCityPassengers, setMultiCityPassengers] = useState('1');
@@ -25,6 +25,8 @@ const Hero = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [airports, setAirports] = useState<{code: string, cityName: string}[]>([]);
+  const [supportedPairs, setSupportedPairs] = useState<any[]>([]);
 
   // Set default dates
   React.useEffect(() => {
@@ -45,11 +47,62 @@ const Hero = () => {
       ...trip,
       date: index === 0 ? tomorrow.toISOString().split('T')[0] : nextWeek.toISOString().split('T')[0]
     })));
+
+    const fetchAirports = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const response = await fetch(`${baseUrl}/api/sabre/supported-origins-destinations`);
+        const json = await response.json();
+        console.log('Airport API response:', json);
+        
+        // Handle both { data: { OriginDestinationLocations: [] } } and { OriginDestinationLocations: [] }
+        const locations = json.data?.OriginDestinationLocations || json.OriginDestinationLocations;
+        
+        if (locations && Array.isArray(locations)) {
+          console.log(`Found ${locations.length} origin-destination pairs`);
+          const airportMap = new Map();
+          
+          locations.forEach((item: any) => {
+            if (item.OriginLocation && item.OriginLocation.AirportCode) {
+              airportMap.set(
+                item.OriginLocation.AirportCode, 
+                item.OriginLocation.CityName || item.OriginLocation.AirportName || item.OriginLocation.AirportCode
+              );
+            }
+            if (item.DestinationLocation && item.DestinationLocation.AirportCode) {
+              airportMap.set(
+                item.DestinationLocation.AirportCode, 
+                item.DestinationLocation.CityName || item.DestinationLocation.AirportName || item.DestinationLocation.AirportCode
+              );
+            }
+          });
+          
+          const uniqueAirports = Array.from(airportMap.entries())
+            .map(([code, cityName]) => ({ code, cityName }))
+            .sort((a, b) => (a.cityName || '').localeCompare(b.cityName || ''));
+            
+          console.log(`Mapped to ${uniqueAirports.length} unique airports:`, uniqueAirports);
+          setAirports(uniqueAirports);
+          setSupportedPairs(locations);
+        } else {
+          console.warn('Unexpected airport data structure:', json);
+        }
+      } catch (err) {
+        console.error('Error fetching airports:', err);
+      }
+    };
+    
+    fetchAirports();
   }, []);
 
   const handleSearch = async () => {
     if (!searchCriteria.from || !searchCriteria.to || !searchCriteria.departureDate) {
       showNotification('Please fill in From, To and Departure Date', 'warning');
+      return;
+    }
+
+    if (searchType === 'return' && searchCriteria.returnDate && searchCriteria.returnDate <= searchCriteria.departureDate) {
+      showNotification('Return date must be after departure date', 'warning');
       return;
     }
 
@@ -59,7 +112,7 @@ const Hero = () => {
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const url = `${baseUrl}/api/sabre/search?origin=${searchCriteria.from}&destination=${searchCriteria.to}&date=${searchCriteria.departureDate}`;
+      const url = `${baseUrl}/api/sabre/search?origin=${searchCriteria.from}&destination=${searchCriteria.to}&date=${searchCriteria.departureDate}&returndate=${searchType === 'return' ? searchCriteria.returnDate : ''}&passengercount=${searchCriteria.passengers}`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -180,56 +233,133 @@ const Hero = () => {
                 style={{ 
                   display: searchType !== 'multi-city' ? 'flex' : 'none',
                   flexWrap: 'wrap',
-                  gap: '30px',
-                  marginBottom: '25px'
+                  gap: '20px',
+                  marginBottom: '25px',
+                  maxWidth: '1100px',
+                  margin: '0 auto'
                 }}
               >
-                <div className="input-group">
+                <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>From</label>
-                  <input 
-                    type="text" 
+                  <select 
                     value={searchCriteria.from}
-                    onChange={(e) => setSearchCriteria({...searchCriteria, from: e.target.value})}
+                    onChange={(e) => {
+                      const newFrom = e.target.value;
+                      const validDestinations = supportedPairs
+                        .filter(p => p.OriginLocation?.AirportCode === newFrom)
+                        .map(p => p.DestinationLocation?.AirportCode);
+                      
+                      let newTo = searchCriteria.to;
+                      if (newFrom && validDestinations.length === 1) {
+                        newTo = validDestinations[0];
+                      } else if (newTo && !validDestinations.includes(newTo)) {
+                        newTo = '';
+                      }
+                      
+                      setSearchCriteria({...searchCriteria, from: newFrom, to: newTo});
+                    }}
                     id="fromCity"
-                  />
+                    className="bottom-field"
+                  >
+                    <option value="">Select Origin</option>
+                    {airports
+                      .filter(airport => {
+                        if (!searchCriteria.to) return true;
+                        return supportedPairs.some(p => 
+                          p.DestinationLocation?.AirportCode === searchCriteria.to && 
+                          p.OriginLocation?.AirportCode === airport.code
+                        );
+                      })
+                      .map((airport) => (
+                        <option key={`from-${airport.code}`} value={airport.code}>
+                          {airport.cityName} ({airport.code})
+                        </option>
+                      ))}
+                  </select>
                 </div>
 
-                <div className="input-group">
+                <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>To</label>
-                  <input 
-                    type="text" 
-                    placeholder="To" 
+                  <select 
                     value={searchCriteria.to}
-                    onChange={(e) => setSearchCriteria({...searchCriteria, to: e.target.value})}
+                    onChange={(e) => {
+                      const newTo = e.target.value;
+                      const validOrigins = supportedPairs
+                        .filter(p => p.DestinationLocation?.AirportCode === newTo)
+                        .map(p => p.OriginLocation?.AirportCode);
+                      
+                      let newFrom = searchCriteria.from;
+                      if (newTo && validOrigins.length === 1) {
+                        newFrom = validOrigins[0];
+                      } else if (newFrom && !validOrigins.includes(newFrom)) {
+                        newFrom = '';
+                      }
+                      
+                      setSearchCriteria({...searchCriteria, to: newTo, from: newFrom});
+                    }}
                     id="toCity"
-                  />
+                    className="bottom-field"
+                  >
+                    <option value="">Select Destination</option>
+                    {airports
+                      .filter(airport => {
+                        if (!searchCriteria.from) return true;
+                        return supportedPairs.some(p => 
+                          p.OriginLocation?.AirportCode === searchCriteria.from && 
+                          p.DestinationLocation?.AirportCode === airport.code
+                        );
+                      })
+                      .map((airport) => (
+                        <option key={`to-${airport.code}`} value={airport.code}>
+                          {airport.cityName} ({airport.code})
+                        </option>
+                      ))}
+                  </select>
                 </div>
 
-                <div className="input-group">
-                  <label>{searchType === 'return' ? 'Return' : 'Date'}</label>
+                <div className="input-group" style={{ flex: '1 1 200px' }}>
+                  <label>Departure</label>
+                  <div className="date-input">
+                    <input 
+                      type="date" 
+                      value={searchCriteria.departureDate}
+                      onChange={(e) => {
+                        const newDeparture = e.target.value;
+                        let newReturn = searchCriteria.returnDate;
+                        if (searchCriteria.returnDate && searchCriteria.returnDate <= newDeparture) {
+                          const nextDay = new Date(newDeparture);
+                          nextDay.setDate(nextDay.getDate() + 1);
+                          newReturn = nextDay.toISOString().split('T')[0];
+                        }
+                        setSearchCriteria({
+                          ...searchCriteria, 
+                          departureDate: newDeparture,
+                          returnDate: newReturn
+                        });
+                      }}
+                      id="departureDate"
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+
+                <div className="input-group" style={{ 
+                  flex: '1 1 200px',
+                  display: searchType === 'return' ? 'block' : 'none' 
+                }}>
+                  <label>Return</label>
                   <div className="date-input">
                     <input 
                       type="date" 
                       value={searchCriteria.returnDate}
                       onChange={(e) => setSearchCriteria({...searchCriteria, returnDate: e.target.value})}
                       id="returnDate"
+                      min={searchCriteria.departureDate}
                     />
                   </div>
                 </div>
 
-                <div className="input-group">
-                  <label>Departure</label>
-                  <div className="date-input">
-                    <input 
-                      type="date" 
-                      value={searchCriteria.departureDate}
-                      onChange={(e) => setSearchCriteria({...searchCriteria, departureDate: e.target.value})}
-                      id="departureDate"
-                    />
-                  </div>
-                </div>
-
-                <div className="input-group">
+                <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>Passengers</label>
                   <select 
                     className="bottom-field" 
@@ -244,7 +374,7 @@ const Hero = () => {
                   </select>
                 </div>
 
-                <div className="input-group">
+                <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>Class</label>
                   <select 
                     className="bottom-field" 
@@ -281,7 +411,9 @@ const Hero = () => {
               <div 
                 className="multi-city-form" 
                 style={{ 
-                  display: searchType === 'multi-city' ? 'flex' : 'none'
+                  display: searchType === 'multi-city' ? 'flex' : 'none',
+                  maxWidth: '1100px',
+                  margin: '0 auto'
                 }}
               >
                 <div className="flight-rows-container" id="flightRows">
@@ -290,24 +422,36 @@ const Hero = () => {
                       <div className="input-group">
                         <label>From</label>
                         <div className="input-wrapper">
-                          <input 
-                            type="text" 
+                          <select 
                             value={trip.from}
                             onChange={(e) => updateTrip(index, 'from', e.target.value)}
-                            placeholder="Enter city"
-                          />
+                            className="bottom-field"
+                          >
+                            <option value="">Select Origin</option>
+                            {airports.map((airport) => (
+                              <option key={`multi-from-${index}-${airport.code}`} value={airport.code}>
+                                {airport.cityName} ({airport.code})
+                              </option>
+                            ))}
+                          </select>
                           <span className="swap-icon">⇌</span>
                         </div>
                       </div>
                       <div className="input-group">
                         <label>To</label>
                         <div className="input-wrapper">
-                          <input 
-                            type="text" 
+                          <select 
                             value={trip.to}
                             onChange={(e) => updateTrip(index, 'to', e.target.value)}
-                            placeholder="Enter city"
-                          />
+                            className="bottom-field"
+                          >
+                            <option value="">Select Destination</option>
+                            {airports.map((airport) => (
+                              <option key={`multi-to-${index}-${airport.code}`} value={airport.code}>
+                                {airport.cityName} ({airport.code})
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div className="input-group">
@@ -413,8 +557,8 @@ const Hero = () => {
 
       {/* Flight Results Section */}
       {(loading || results || error) && (
-        <div id="search-results" className="search-results-section py-12 bg-gray-50">
-          <div className="main-container">
+        <div id="search-results" className="search-results-section py-20 bg-gray-50">
+          <div className="max-w-[1200px] mx-auto px-4">
             {loading && (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="loading-spinner mb-4"></div>
