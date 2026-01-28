@@ -3,6 +3,107 @@
 import React, { useState } from 'react';
 import { BookingModal } from '../Common';
 
+const SearchableAirportSelect = ({ 
+  value, 
+  onChange, 
+  options, 
+  placeholder,
+  id,
+  className
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  options: {code: string, cityName: string}[];
+  placeholder: string;
+  id?: string;
+  className?: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Find name for code
+  const getAirportLabel = (code: string) => {
+    const opt = options.find(o => o.code === code);
+    return opt ? `${opt.cityName} (${opt.code})` : '';
+  };
+
+  // Sync searchTerm with value when not focused/open
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSearchTerm(getAirportLabel(value));
+    }
+  }, [value, isOpen, options]);
+
+  const filteredOptions = options.filter(opt => 
+    opt.cityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    opt.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="relative w-full">
+      <div className="relative">
+        <input
+          type="text"
+          id={id}
+          className={`${className} pr-10`}
+          placeholder={placeholder}
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setIsOpen(true);
+            if (!e.target.value) onChange('');
+          }}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => {
+            setTimeout(() => {
+              setIsOpen(false);
+            }, 200);
+          }}
+          autoComplete="off"
+        />
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      
+      {isOpen && (
+        <ul className="absolute z-[1000] w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-72 overflow-y-auto py-2 left-0">
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((opt) => (
+              <li
+                key={opt.code}
+                className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between items-center group"
+                onMouseDown={() => {
+                  onChange(opt.code);
+                  setSearchTerm(`${opt.cityName} (${opt.code})`);
+                  setIsOpen(false);
+                }}
+              >
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-800">{opt.cityName}</span>
+                  <span className="text-xs text-gray-500 uppercase">{opt.code}</span>
+                </div>
+                <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </li>
+            ))
+          ) : (
+            <li className="px-4 py-8 text-center">
+              <div className="text-gray-400 text-sm mb-1">No matches found</div>
+              <div className="text-xs text-gray-300">Try searching for the city or code</div>
+            </li>
+          )}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 const Hero = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [searchType, setSearchType] = useState<'return' | 'one-way' | 'multi-city'>('return');
@@ -241,10 +342,16 @@ const Hero = () => {
               >
                 <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>From</label>
-                  <select 
+                  <SearchableAirportSelect 
                     value={searchCriteria.from}
-                    onChange={(e) => {
-                      const newFrom = e.target.value;
+                    options={airports.filter(airport => {
+                      if (!searchCriteria.to) return true;
+                      return supportedPairs.some(p => 
+                        p.DestinationLocation?.AirportCode === searchCriteria.to && 
+                        p.OriginLocation?.AirportCode === airport.code
+                      );
+                    })}
+                    onChange={(newFrom) => {
                       const validDestinations = supportedPairs
                         .filter(p => p.OriginLocation?.AirportCode === newFrom)
                         .map(p => p.DestinationLocation?.AirportCode);
@@ -260,30 +367,22 @@ const Hero = () => {
                     }}
                     id="fromCity"
                     className="bottom-field"
-                  >
-                    <option value="">Select Origin</option>
-                    {airports
-                      .filter(airport => {
-                        if (!searchCriteria.to) return true;
-                        return supportedPairs.some(p => 
-                          p.DestinationLocation?.AirportCode === searchCriteria.to && 
-                          p.OriginLocation?.AirportCode === airport.code
-                        );
-                      })
-                      .map((airport) => (
-                        <option key={`from-${airport.code}`} value={airport.code}>
-                          {airport.cityName} ({airport.code})
-                        </option>
-                      ))}
-                  </select>
+                    placeholder="Select Origin"
+                  />
                 </div>
 
                 <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>To</label>
-                  <select 
+                  <SearchableAirportSelect 
                     value={searchCriteria.to}
-                    onChange={(e) => {
-                      const newTo = e.target.value;
+                    options={airports.filter(airport => {
+                      if (!searchCriteria.from) return true;
+                      return supportedPairs.some(p => 
+                        p.OriginLocation?.AirportCode === searchCriteria.from && 
+                        p.DestinationLocation?.AirportCode === airport.code
+                      );
+                    })}
+                    onChange={(newTo) => {
                       const validOrigins = supportedPairs
                         .filter(p => p.DestinationLocation?.AirportCode === newTo)
                         .map(p => p.OriginLocation?.AirportCode);
@@ -299,22 +398,8 @@ const Hero = () => {
                     }}
                     id="toCity"
                     className="bottom-field"
-                  >
-                    <option value="">Select Destination</option>
-                    {airports
-                      .filter(airport => {
-                        if (!searchCriteria.from) return true;
-                        return supportedPairs.some(p => 
-                          p.OriginLocation?.AirportCode === searchCriteria.from && 
-                          p.DestinationLocation?.AirportCode === airport.code
-                        );
-                      })
-                      .map((airport) => (
-                        <option key={`to-${airport.code}`} value={airport.code}>
-                          {airport.cityName} ({airport.code})
-                        </option>
-                      ))}
-                  </select>
+                    placeholder="Select Destination"
+                  />
                 </div>
 
                 <div className="input-group" style={{ flex: '1 1 200px' }}>
@@ -491,29 +576,25 @@ const Hero = () => {
                       <div className="input-group">
                         <label>From</label>
                         <div className="input-wrapper">
-                          <select 
+                          <SearchableAirportSelect 
                             value={trip.from}
-                            onChange={(e) => updateTrip(index, 'from', e.target.value)}
-                            // placeholder="Enter city"
+                            options={airports}
+                            onChange={(val) => updateTrip(index, 'from', val)}
+                            placeholder="Select Origin"
+                            className="bottom-field"
                           />
-                          
                         </div>
                       </div>
                       <div className="input-group">
                         <label>To</label>
                         <div className="input-wrapper">
-                          <select 
+                          <SearchableAirportSelect 
                             value={trip.to}
-                            onChange={(e) => updateTrip(index, 'to', e.target.value)}
+                            options={airports}
+                            onChange={(val) => updateTrip(index, 'to', val)}
+                            placeholder="Select Destination"
                             className="bottom-field"
-                          >
-                            <option value="">Select Destination</option>
-                            {airports.map((airport) => (
-                              <option key={`multi-to-${index}-${airport.code}`} value={airport.code}>
-                                {airport.cityName} ({airport.code})
-                              </option>
-                            ))}
-                          </select>
+                          />
                         </div>
                       </div>
                       <div className="input-group">
