@@ -494,7 +494,7 @@ const Hero = () => {
                           <select 
                             value={trip.from}
                             onChange={(e) => updateTrip(index, 'from', e.target.value)}
-                            placeholder="Enter city"
+                            // placeholder="Enter city"
                           />
                           
                         </div>
