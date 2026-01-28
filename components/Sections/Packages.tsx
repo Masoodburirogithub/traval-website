@@ -43,13 +43,13 @@ const Packages = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </div>
-          <div className="h-1 w-16 md:w-24 bg-blue-600 rounded-full"></div>
+          <div className="h-1 w-16 md:w-24 bg-blue-600 "></div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {packages.map((pkg) => (
-          <div key={pkg.id} className="bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow group">
+          <div key={pkg.id} className="bg-white rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-shadow group">
             <div className="h-48 md:h-64 overflow-hidden relative">
               <img
                 src={pkg.image} 
@@ -84,7 +84,7 @@ const Packages = () => {
               </div>
               <p className="text-slate-500 mb-6 md:mb-8 text-sm md:text-base">{pkg.description}</p>
               <button
-                className="w-full py-3 md:py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-colors text-sm md:text-base"
+                className="w-[180px] py-3 md:py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-colors text-sm md:text-base"
                 onClick={handlePackageSearch}
               >
                 Search Flights

@@ -7,16 +7,9 @@ import temple from '../../public/Frame1597886602.jpg'
 
 const AboutSection = () => {
   return (
-    <section className="img-about mx-auto px-8 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden py-16 md:py-24">
+    <section className="container img-about mx-auto px-8 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden py-16 md:py-24">
       <div className="absolute inset-0 pointer-events-none z-0">
-        <svg className="w-full h-full" viewBox="0 0 1000 600">
-          <path className="flight-path" d="M50,550 Q100,450 150,580 T300,550 Q450,450 550,150" />
-          <path className="flight-path" d="M550,150 Q600,100 650,50" strokeWidth="2" />
-          <g transform="translate(570, 120) rotate(-45)">
-            <path fill="#cbd5e1" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-          </g>
-          <circle cx="50" cy="550" r="4" fill="#cbd5e1" />
-        </svg>
+        
       </div>
 
       <div className="relative w-full md:w-1/2 h-[400px] md:h-[500px]">

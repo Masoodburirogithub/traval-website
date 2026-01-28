@@ -25,7 +25,7 @@ const BlogPosts = () => {
       category: 'Culture',
       date: '22 Oct, 2023',
       image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600',
-      isBestSeller: false,
+      isBestSeller: true,
     },
   ];
 
@@ -56,7 +56,7 @@ const BlogPosts = () => {
               />
 
               {post.isBestSeller && (
-                <div className="absolute bottom-0 left-4 translate-y-1/2 bg-orange-500 text-white text-[10px] font-bold px-4 py-2 rounded-md shadow-lg">
+                <div className="absolute bottom-5 left-4 translate-y-1/2 bg-orange-500 text-white text-[15px] font-bold px-4 py-2 rounded-md shadow-lg">
                   Best Seller
                 </div>
               )}

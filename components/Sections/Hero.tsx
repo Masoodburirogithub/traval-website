@@ -200,7 +200,7 @@ const Hero = () => {
               <p>We always make our customer happy by providing as <br /> many choices as possible.</p>
             </div>
             
-            <div className="search-card">
+            <div className="search-card shadow-md">
               <h2>Where would you like to go?</h2>
               
               <div className="tabs">
@@ -229,7 +229,7 @@ const Hero = () => {
 
               {/* Return/One Way Form */}
               <form 
-                className="search-form" 
+                className="search-form " 
                 style={{ 
                   display: searchType !== 'multi-city' ? 'flex' : 'none',
                   flexWrap: 'wrap',
@@ -359,20 +359,89 @@ const Hero = () => {
                   </div>
                 </div>
 
-                <div className="input-group" style={{ flex: '1 1 200px' }}>
-                  <label>Passengers</label>
-                  <select 
-                    className="bottom-field" 
-                    value={searchCriteria.passengers}
-                    onChange={(e) => setSearchCriteria({...searchCriteria, passengers: e.target.value})}
-                    id="passengers"
-                  >
-                    <option value="1">1 Adult</option>
-                    <option value="2">2 Adults</option>
-                    <option value="3">3 Adults</option>
-                    <option value="4">4 Adults</option>
-                  </select>
-                </div>
+   <div className="input-group">
+  <label>Passengers</label>
+  <div className="passenger-counter" style={{ 
+    display: 'flex', 
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    alignItems: 'center', 
+    gap: 'clamp(8px, 2vw, 12px)', // Responsive gap
+    padding: 'clamp(10px, 2.5vw, 14px) clamp(12px, 3vw, 18px)', // Responsive padding
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    backgroundColor: 'white',
+    width: '100%',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap'
+  }}>
+    <button 
+      type="button"
+      onClick={() => setSearchCriteria({
+        ...searchCriteria, 
+        passengers: parseInt(searchCriteria.passengers) > 1 ? `${parseInt(searchCriteria.passengers) - 1}` : '1'
+      })}
+      style={{
+        width: 'clamp(28px, 6vw, 30px)', // Responsive width
+        height: 'clamp(28px, 6vw, 30px)', // Responsive height
+        borderRadius: '50%',
+        border: '1px solid #d1d5db',
+        backgroundColor: '#f9fafb',
+        fontSize: 'clamp(14px, 3vw, 16px)', // Responsive font
+        fontWeight: '600',
+        color: '#374151',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s',
+        flexShrink: 0
+      }}
+      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+      onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f9fafb'}
+    >
+      -
+    </button>
+    
+    <span style={{
+      minWidth: '24px',
+      textAlign: 'center',
+      fontSize: 'clamp(15px, 3.5vw, 17px)', // Responsive font
+      fontWeight: '500',
+      color: '#111827',
+      flexGrow: 1
+    }}>
+      {searchCriteria.passengers}
+    </span>
+    
+    <button 
+      type="button"
+      onClick={() => setSearchCriteria({
+        ...searchCriteria, 
+        passengers: parseInt(searchCriteria.passengers) < 4 ? `${parseInt(searchCriteria.passengers) + 1}` : '4'
+      })}
+      style={{
+        width: 'clamp(28px, 6vw, 30px)', // Responsive width
+        height: 'clamp(28px, 6vw, 30px)', // Responsive height
+        borderRadius: '50%',
+        border: '1px solid #d1d5db',
+        backgroundColor: '#f9fafb',
+        fontSize: 'clamp(14px, 3vw, 16px)', // Responsive font
+        fontWeight: '600',
+        color: '#374151',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s',
+        flexShrink: 0
+      }}
+      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+      onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f9fafb'}
+    >
+      +
+    </button>
+  </div>
+</div>
 
                 <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>Class</label>
@@ -425,16 +494,9 @@ const Hero = () => {
                           <select 
                             value={trip.from}
                             onChange={(e) => updateTrip(index, 'from', e.target.value)}
-                            className="bottom-field"
-                          >
-                            <option value="">Select Origin</option>
-                            {airports.map((airport) => (
-                              <option key={`multi-from-${index}-${airport.code}`} value={airport.code}>
-                                {airport.cityName} ({airport.code})
-                              </option>
-                            ))}
-                          </select>
-                          <span className="swap-icon">⇌</span>
+                            placeholder="Enter city"
+                          />
+                          
                         </div>
                       </div>
                       <div className="input-group">
@@ -504,51 +566,79 @@ const Hero = () => {
                   Add Trip
                 </button>
 
-                <hr className="divider" />
+                {/* <hr className="divider" /> */}
 
-                <div className="bottom-bar">
-                  <div className="bottom-inputs">
-                    <div className="input-group">
-                      <label>Passenger</label>
-                      <select 
-                        className="bottom-field" 
-                        value={multiCityPassengers}
-                        onChange={(e) => setMultiCityPassengers(e.target.value)}
-                      >
-                        <option value="1">1 Adult</option>
-                        <option value="2">2 Adults</option>
-                        <option value="3">3 Adults</option>
-                        <option value="4">4 Adults</option>
-                      </select>
-                    </div>
-                    <div className="input-group">
-                      <label>Classes</label>
-                      <select 
-                        className="bottom-field" 
-                        value={multiCityClass}
-                        onChange={(e) => setMultiCityClass(e.target.value)}
-                      >
-                        <option value="economy">Economy</option>
-                        <option value="premium">Premium Economy</option>
-                        <option value="business">Business Class</option>
-                        <option value="first">First Class</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    className="btn-search" 
-                    type="button" 
-                    onClick={handleMultiCitySearch}
-                  >
-                    Search Multi-City Flights
-                  </button>
-                </div>
+  <div className="bottom-bar">
+  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full">
+    <div className="input-group flex-1">
+      <label className="block text-sm font-medium text-gray-700 mb-1">Passengers</label>
+      <div className="flex items-center justify-between p-1 sm:p-2 bg-white border border-gray-200 rounded-lg shadow-sm w-full">
+        <button 
+          type="button"
+          onClick={() => setSearchCriteria({
+            ...searchCriteria, 
+            passengers: parseInt(searchCriteria.passengers) > 1 ? `${parseInt(searchCriteria.passengers) - 1}` : '1'
+          })}
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-300 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-lg font-semibold text-gray-700 transition-colors duration-200"
+        >
+          -
+        </button>
+        
+        <span className="text-base sm:text-lg font-medium text-gray-900 px-4">
+          {searchCriteria.passengers}
+        </span>
+        
+        <button 
+          type="button"
+          onClick={() => setSearchCriteria({
+            ...searchCriteria, 
+            passengers: parseInt(searchCriteria.passengers) < 4 ? `${parseInt(searchCriteria.passengers) + 1}` : '4'
+          })}
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-300 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-lg font-semibold text-gray-700 transition-colors duration-200"
+        >
+          +
+        </button>
+      </div>
+    </div>
+    
+    <div className="input-group flex-1">
+      <label className="block text-sm font-medium text-gray-700 mb-1">Classes</label>
+      <select 
+        className="w-full p-3 sm:p-4 border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+        value={multiCityClass}
+        onChange={(e) => setMultiCityClass(e.target.value)}
+      >
+        <option value="economy">Economy</option>
+        <option value="premium">Premium Economy</option>
+        <option value="business">Business Class</option>
+        <option value="first">First Class</option>
+      </select>
+    </div>
+  </div>
+
+  <div className="flex flex-col sm:flex-row  items-center justify-between mt-4 w-full">
+    <div className="flex items-center space-x-2">
+      <input 
+        type="checkbox" 
+        id="direct" 
+        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+      />
+      <label htmlFor="direct" className="text-sm sm:text-base text-gray-700">
+        Direct Flight Only
+      </label>
+    </div>  
+    
+    <button 
+      className=" btn-search px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base font-semibold rounded-lg"
+      type="button" 
+      onClick={handleMultiCitySearch}
+    >
+      Search Multi-City Flights
+    </button>
+  </div>
+</div>
                 
-                <div className="checkbox-container">
-                  <input type="checkbox" id="direct" />
-                  <label htmlFor="direct">Direct Flight Only</label>
-                </div>
+                
               </div>
             </div>
           </header>

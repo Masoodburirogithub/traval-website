@@ -17,15 +17,15 @@ const Services = () => {
     },
     {
       title: 'South America',
-      image: 'https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?auto=format&fit=crop&w=800',
+      image: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=800',
     },
     {
       title: 'Southeast Asia',
-      image: 'https://images.unsplash.com/photo-1528260247337-2c70d4f8d8f5?auto=format&fit=crop&w=800',
+      image: 'https://images.unsplash.com/photo-1544085311-11a028465b03?auto=format&fit=crop&w=800',
     },
     {
       title: 'Australia',
-      image: 'https://images.unsplash.com/photo-1506970845872-504d6b2d49e8?auto=format&fit=crop&w=800',
+      image: 'https://images.unsplash.com/photo-1529260830199-42c24126f198?auto=format&fit=crop&w=800',
     },
   ];
 
@@ -54,7 +54,7 @@ const Services = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {services.map((service, index) => (
-            <div key={index} className="group relative h-56 md:h-72 rounded-3xl overflow-hidden cursor-pointer">
+            <div key={index} className="group relative h-56 md:h-72 rounded-2xl overflow-hidden cursor-pointer">
               <img
                 src={service.image}
                 alt={service.title}

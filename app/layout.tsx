@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
+import { ClerkProvider } from '@clerk/nextjs';
 
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // <ClerkProvider>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
         <head>
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -34,6 +35,6 @@ export default function RootLayout({
           
         </body>
       </html>
-    // </ClerkProvider>
+    </ClerkProvider>
   );
 }
