@@ -1,9 +1,7 @@
-// components/Common/UserProfile.tsx - FIXED VERSION
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useClerk } from '@clerk/nextjs';
 
 interface UserProfileProps {
   onLogout: () => void;
@@ -20,24 +18,9 @@ interface UserData {
 
 const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false, onViewBookings }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isSignedIn } = useUser();
-  const { signOut } = useClerk();
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
-
-  // Sync Clerk user with localStorage for backward compatibility
-  useEffect(() => {
-    if (isSignedIn && user) {
-      const userData: UserData = {
-        id: user.id,
-        name: user.fullName || user.firstName || 'User',
-        email: user.primaryEmailAddress?.emailAddress || '',
-        phone: user.phoneNumbers?.[0]?.phoneNumber || '',
-      };
-      localStorage.setItem('currentUser', JSON.stringify(userData));
-    }
-  }, [isSignedIn, user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,17 +50,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false, o
     };
   }, [isMenuOpen]);
 
-  // Get user data from Clerk or localStorage
+  // Get user data from localStorage only
   const getDisplayUser = (): UserData | null => {
-    if (isSignedIn && user) {
-      return {
-        id: user.id,
-        name: user.fullName || user.firstName || 'User',
-        email: user.primaryEmailAddress?.emailAddress || '',
-        phone: user.phoneNumbers?.[0]?.phoneNumber || '',
-      };
-    }
-    
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       try {
@@ -130,9 +104,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout, isMobile = false, o
 
   const handleLogout = async () => {
     setIsMenuOpen(false);
-    if (isSignedIn) {
-      await signOut();
-    }
     localStorage.removeItem('currentUser');
     onLogout();
     router.push('/');
