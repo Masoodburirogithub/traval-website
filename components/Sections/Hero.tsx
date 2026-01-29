@@ -107,14 +107,36 @@ const SearchableAirportSelect = ({
 const Hero = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [searchType, setSearchType] = useState<'return' | 'one-way' | 'multi-city'>('return');
+  const [showTravelers, setShowTravelers] = useState(false);
+  const travelersRef = React.useRef<HTMLDivElement>(null);
+
   const [searchCriteria, setSearchCriteria] = useState({
     from: '',
     to: '',
     departureDate: '',  
     returnDate: '',
     passengers: '1',
+    travelers: {
+      adults: 1,
+      students: 0,
+      seniors: 0,
+      youths: 0,
+      children: 0,
+      toddlers: 0,
+      infants: 0
+    },
     cabinClass: 'economy',
   });
+  
+  const travelerTypes = [
+    { id: 'adults', label: 'Adults', subtext: '18-64' },
+    { id: 'students', label: 'Students', subtext: 'over 18' },
+    { id: 'seniors', label: 'Seniors', subtext: 'over 65' },
+    { id: 'youths', label: 'Youths', subtext: '12-17' },
+    { id: 'children', label: 'Children', subtext: '2-11' },
+    { id: 'toddlers', label: 'Toddlers in own seat', subtext: 'under 2' },
+    { id: 'infants', label: 'Infants on lap', subtext: 'under 2' },
+  ];
   
   // For Multi-City
   const [multiCityTrips, setMultiCityTrips] = useState([
@@ -128,6 +150,8 @@ const Hero = () => {
   const [error, setError] = useState<string | null>(null);
   const [airports, setAirports] = useState<{code: string, cityName: string}[]>([]);
   const [supportedPairs, setSupportedPairs] = useState<any[]>([]);
+  
+
 
   // Set default dates
   React.useEffect(() => {
@@ -196,6 +220,41 @@ const Hero = () => {
     fetchAirports();
   }, []);
 
+  // Handle click outside travelers dropdown
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (travelersRef.current && !travelersRef.current.contains(event.target as Node)) {
+        setShowTravelers(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const updateTravelers = (type: string, operation: 'add' | 'remove') => {
+    setSearchCriteria(prev => {
+      // @ts-ignore
+      const current = prev.travelers[type];
+      const newValue = operation === 'add' ? current + 1 : Math.max(0, current - 1);
+      
+      // Keep at least 1 adult
+      if (type === 'adults' && newValue < 1) return prev;
+
+      const newTravelers = { ...prev.travelers, [type]: newValue };
+      // @ts-ignore
+      const total = Object.values(newTravelers).reduce((a: number, b: number) => a + b, 0);
+      
+      return {
+        ...prev,
+        travelers: newTravelers,
+        passengers: total.toString()
+      };
+    });
+  };
+
   const handleSearch = async () => {
     if (!searchCriteria.from || !searchCriteria.to || !searchCriteria.departureDate) {
       showNotification('Please fill in From, To and Departure Date', 'warning');
@@ -220,6 +279,13 @@ const Hero = () => {
 
       if (data.success) {
         setResults(data.data);
+        
+        // TODO: Update maxPassengers based on available seats from API
+        // Example: if API returns available seats data
+        // if (data.data.availableSeats) {
+        //   setMaxPassengers(data.data.availableSeats);
+        // }
+        
         // Scroll to results
         setTimeout(() => {
           document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
@@ -444,89 +510,65 @@ const Hero = () => {
                   </div>
                 </div>
 
-   <div className="input-group">
-  <label>Passengers</label>
-  <div className="passenger-counter" style={{ 
-    display: 'flex', 
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    alignItems: 'center', 
-    gap: 'clamp(8px, 2vw, 12px)', // Responsive gap
-    padding: 'clamp(10px, 2.5vw, 14px) clamp(12px, 3vw, 18px)', // Responsive padding
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    backgroundColor: 'white',
-    width: '100%',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap'
-  }}>
-    <button 
-      type="button"
-      onClick={() => setSearchCriteria({
-        ...searchCriteria, 
-        passengers: parseInt(searchCriteria.passengers) > 1 ? `${parseInt(searchCriteria.passengers) - 1}` : '1'
-      })}
-      style={{
-        width: 'clamp(28px, 6vw, 30px)', // Responsive width
-        height: 'clamp(28px, 6vw, 30px)', // Responsive height
-        borderRadius: '50%',
-        border: '1px solid #d1d5db',
-        backgroundColor: '#f9fafb',
-        fontSize: 'clamp(14px, 3vw, 16px)', // Responsive font
-        fontWeight: '600',
-        color: '#374151',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.2s',
-        flexShrink: 0
-      }}
-      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-      onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f9fafb'}
-    >
-      -
-    </button>
-    
-    <span style={{
-      minWidth: '24px',
-      textAlign: 'center',
-      fontSize: 'clamp(15px, 3.5vw, 17px)', // Responsive font
-      fontWeight: '500',
-      color: '#111827',
-      flexGrow: 1
-    }}>
-      {searchCriteria.passengers}
-    </span>
-    
-    <button 
-      type="button"
-      onClick={() => setSearchCriteria({
-        ...searchCriteria, 
-        passengers: parseInt(searchCriteria.passengers) < 4 ? `${parseInt(searchCriteria.passengers) + 1}` : '4'
-      })}
-      style={{
-        width: 'clamp(28px, 6vw, 30px)', // Responsive width
-        height: 'clamp(28px, 6vw, 30px)', // Responsive height
-        borderRadius: '50%',
-        border: '1px solid #d1d5db',
-        backgroundColor: '#f9fafb',
-        fontSize: 'clamp(14px, 3vw, 16px)', // Responsive font
-        fontWeight: '600',
-        color: '#374151',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.2s',
-        flexShrink: 0
-      }}
-      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-      onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f9fafb'}
-    >
-      +
-    </button>
-  </div>
-</div>
+                <div className="input-group relative" ref={travelersRef} style={{ flex: '1 1 200px' }}>
+                  <label>Travelers</label>
+                  <div 
+                    className="bottom-field flex items-center justify-between cursor-pointer"
+                    onClick={() => setShowTravelers(!showTravelers)}
+                    style={{ userSelect: 'none' }}
+                  >
+                    <div className="flex flex-col justify-center">
+                      <span className="font-medium text-gray-800">
+                        {searchCriteria.passengers} Traveler{parseInt(searchCriteria.passengers) !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <span className="text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                  </div>
+                  
+                  {showTravelers && (
+                    <div className="absolute top-full left-0 w-full min-w-[320px] bg-white rounded-xl shadow-xl mt-2 p-2 z-50 border border-gray-100 max-h-[400px] overflow-y-auto">
+                      {travelerTypes.map((type) => (
+                        <div key={type.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-800">{type.label}</span>
+                            <span className="text-xs text-gray-500">{type.subtext}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => updateTravelers(type.id, 'remove')}
+                              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
+                                // @ts-ignore
+                                searchCriteria.travelers[type.id] === (type.id === 'adults' ? 1 : 0)
+                                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                                  : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-500'
+                              }`}
+                              // @ts-ignore
+                              disabled={searchCriteria.travelers[type.id] === (type.id === 'adults' ? 1 : 0)}
+                            >
+                              -
+                            </button>
+                            <span className="w-6 text-center font-medium text-gray-700">
+                              {/* @ts-ignore */}
+                              {searchCriteria.travelers[type.id]}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateTravelers(type.id, 'add')}
+                              className="w-8 h-8 rounded-full border border-gray-300 text-gray-600 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 transition-colors"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <div className="input-group" style={{ flex: '1 1 200px' }}>
                   <label>Class</label>
@@ -673,7 +715,7 @@ const Hero = () => {
           type="button"
           onClick={() => setSearchCriteria({
             ...searchCriteria, 
-            passengers: parseInt(searchCriteria.passengers) < 4 ? `${parseInt(searchCriteria.passengers) + 1}` : '4'
+            passengers: `${parseInt(searchCriteria.passengers) + 1}`
           })}
           className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-300 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-lg font-semibold text-gray-700 transition-colors duration-200"
         >
