@@ -1,12 +1,9 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Gurkhas Travel - Professional Flight Booking',
@@ -25,7 +22,7 @@ export default function RootLayout({
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
           <script src="https://cdn.tailwindcss.com"></script>
         </head>
-        <body className={`${inter.className} bg-gray-50`}>
+        <body className={`bg-gray-50`}>
           
             <Navbar />
             <main>{children}</main>
